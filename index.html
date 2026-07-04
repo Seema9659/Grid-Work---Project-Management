@@ -1,0 +1,393 @@
+<html>
+<head>
+<title>GRIDWORK — Project Planning</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <aside class="rail">
+    <div class="rail-top">
+      <div class="mark" aria-hidden="true">
+        <svg viewBox="0 0 32 32"><rect x="2" y="2" width="28" height="28" rx="3"/><path d="M2 11h28M11 2v28" /></svg>
+      </div>
+      <div class="wordmark">
+        <span class="w1">GRID</span><span class="w2">WORK</span>
+        <p>planning, drafted precisely</p>
+      </div>
+    </div>
+
+    <nav class="rail-nav" id="railNav">
+      <button class="nav-item is-active" data-view="dashboard">
+        <span class="ni-ico">◱</span><span>Dashboard</span>
+      </button>
+      <button class="nav-item" data-view="projects">
+        <span class="ni-ico">▤</span><span>Projects</span>
+      </button>
+      <button class="nav-item" data-view="board">
+        <span class="ni-ico">▥</span><span>Task Board</span>
+      </button>
+      <button class="nav-item" data-view="calendar">
+        <span class="ni-ico">▦</span><span>Calendar</span>
+      </button>
+      <button class="nav-item" data-view="team">
+        <span class="ni-ico">◍</span><span>Team</span>
+      </button>
+    </nav>
+
+    <div class="rail-bottom">
+      <button class="theme-toggle" id="themeToggle" aria-label="Toggle light/dark mode">
+        <span class="tt-icon sun">☼</span>
+        <span class="tt-track"><span class="tt-thumb"></span></span>
+        <span class="tt-icon moon">☾</span>
+      </button>
+      <div class="current-user" id="currentUserBox">
+        <div class="cu-avatar" id="cuAvatar">—</div>
+        <div class="cu-meta">
+          <p class="cu-name" id="cuName">—</p>
+          <p class="cu-role" id="cuRole">—</p>
+        </div>
+        <span class="cu-caret">⌄</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MOBILE TOPBAR -->
+  <header class="mobile-bar">
+    <button id="mobileMenuBtn" class="icon-btn" aria-label="Open menu">☰</button>
+    <div class="mobile-brand">GRIDWORK</div>
+    <button class="theme-toggle sm" id="themeToggleMobile" aria-label="Toggle theme">☾</button>
+  </header>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- DASHBOARD -->
+    <section class="view is-active" id="view-dashboard">
+      <div class="view-head">
+        <div>
+          <p class="eyebrow">Sheet 01 — Overview</p>
+          <h1>Dashboard</h1>
+        </div>
+        <div class="view-actions">
+          <div class="search-wrap">
+            <input type="text" id="globalSearch" placeholder="Search tasks, projects, people…">
+          </div>
+        </div>
+      </div>
+
+      <div class="stat-row" id="statRow"></div>
+
+      <div class="dash-grid">
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <h2>Completed Tasks — Last 14 Days</h2>
+              <p class="sub">closed items per day, across all projects</p>
+            </div>
+          </div>
+          <div class="chart-box"><canvas id="trendChart"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <h2>Status Breakdown</h2>
+              <p class="sub">current state of all open work</p>
+            </div>
+          </div>
+          <div class="chart-box"><canvas id="statusChart"></canvas></div>
+        </div>
+      </div>
+
+      <div class="dash-grid dash-grid--reverse">
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <h2>Workload by Person</h2>
+              <p class="sub">open tasks assigned right now</p>
+            </div>
+          </div>
+          <div class="chart-box small"><canvas id="workloadChart"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <h2>Due Soon</h2>
+              <p class="sub">next 7 days, earliest first</p>
+            </div>
+          </div>
+          <div class="due-list" id="dueSoonList"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PROJECTS -->
+    <section class="view" id="view-projects">
+      <div class="view-head">
+        <div>
+          <p class="eyebrow">Sheet 02 — Portfolio</p>
+          <h1>Projects</h1>
+        </div>
+        <div class="view-actions">
+          <button class="btn primary" id="newProjectBtn">+ New project</button>
+        </div>
+      </div>
+      <div class="project-grid" id="projectGrid"></div>
+    </section>
+
+    <!-- BOARD -->
+    <section class="view" id="view-board">
+      <div class="view-head">
+        <div>
+          <p class="eyebrow">Sheet 03 — Task Detail</p>
+          <h1>Task Board</h1>
+        </div>
+        <div class="view-actions">
+          <button class="btn primary" id="newTaskBtn">+ New task</button>
+        </div>
+      </div>
+
+      <div class="filter-bar">
+        <select id="filterProject"><option value="all">All projects</option></select>
+        <select id="filterAssignee"><option value="all">Everyone</option></select>
+        <select id="filterPriority">
+          <option value="all">Any priority</option>
+          <option value="high">High priority</option>
+          <option value="med">Medium priority</option>
+          <option value="low">Low priority</option>
+        </select>
+        <input type="text" id="filterSearch" placeholder="Filter by title…">
+      </div>
+
+      <div class="board" id="board">
+        <div class="board-col" data-status="todo">
+          <div class="board-col-head"><span class="dot dot-todo"></span>To Do <span class="count" id="countTodo">0</span></div>
+          <div class="board-col-body" id="col-todo" data-status="todo"></div>
+        </div>
+        <div class="board-col" data-status="inprogress">
+          <div class="board-col-head"><span class="dot dot-inprogress"></span>In Progress <span class="count" id="countInprogress">0</span></div>
+          <div class="board-col-body" id="col-inprogress" data-status="inprogress"></div>
+        </div>
+        <div class="board-col" data-status="done">
+          <div class="board-col-head"><span class="dot dot-done"></span>Done <span class="count" id="countDone">0</span></div>
+          <div class="board-col-body" id="col-done" data-status="done"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CALENDAR -->
+    <section class="view" id="view-calendar">
+      <div class="view-head">
+        <div>
+          <p class="eyebrow">Sheet 04 — Schedule</p>
+          <h1>Calendar</h1>
+        </div>
+        <div class="view-actions cal-nav">
+          <button class="icon-btn" id="calPrev">‹</button>
+          <span id="calLabel" class="cal-label"></span>
+          <button class="icon-btn" id="calNext">›</button>
+          <button class="btn ghost" id="calToday">Today</button>
+        </div>
+      </div>
+
+      <div class="cal-wrap">
+        <div class="cal-grid cal-weekdays">
+          <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+        </div>
+        <div class="cal-grid" id="calGrid"></div>
+      </div>
+    </section>
+
+    <!-- TEAM -->
+    <section class="view" id="view-team">
+      <div class="view-head">
+        <div>
+          <p class="eyebrow">Sheet 05 — Roster</p>
+          <h1>Team</h1>
+        </div>
+        <div class="view-actions">
+          <button class="btn primary" id="newMemberBtn">+ Add member</button>
+        </div>
+      </div>
+      <div class="team-grid" id="teamGrid"></div>
+    </section>
+
+  </main>
+</div>
+
+<!-- SCRIM for mobile nav + modals -->
+<div class="scrim" id="scrim"></div>
+
+<!-- TASK MODAL -->
+<div class="modal" id="taskModal" role="dialog" aria-modal="true">
+  <div class="modal-card modal-card--wide">
+    <div class="modal-head">
+      <h3 id="taskModalTitle">New task</h3>
+      <button class="icon-btn" data-close-modal>✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="taskId">
+      <label class="field">
+        <span>Title</span>
+        <input type="text" id="taskTitle" placeholder="e.g. Draft floor plan revisions">
+      </label>
+
+      <div class="field-row">
+        <label class="field">
+          <span>Project</span>
+          <select id="taskProject"></select>
+        </label>
+        <label class="field">
+          <span>Assignee</span>
+          <select id="taskAssignee"></select>
+        </label>
+      </div>
+
+      <div class="field-row">
+        <label class="field">
+          <span>Priority</span>
+          <select id="taskPriority">
+            <option value="low">Low</option>
+            <option value="med" selected>Medium</option>
+            <option value="high">High</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>Status</span>
+          <select id="taskStatus">
+            <option value="todo">To Do</option>
+            <option value="inprogress">In Progress</option>
+            <option value="done">Done</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>Due date</span>
+          <input type="date" id="taskDue">
+        </label>
+      </div>
+
+      <label class="field">
+        <span>Description</span>
+        <textarea id="taskDesc" rows="3" placeholder="Add detail, context, or acceptance criteria…"></textarea>
+      </label>
+
+      <div class="field">
+        <span>Checklist</span>
+        <div class="checklist" id="taskChecklist"></div>
+        <div class="checklist-add">
+          <input type="text" id="checklistInput" placeholder="Add a subtask and press Enter">
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn danger" id="deleteTaskBtn">Delete task</button>
+      <div class="spacer"></div>
+      <button class="btn ghost" data-close-modal>Cancel</button>
+      <button class="btn primary" id="saveTaskBtn">Save task</button>
+    </div>
+  </div>
+</div>
+
+<!-- PROJECT MODAL -->
+<div class="modal" id="projectModal" role="dialog" aria-modal="true">
+  <div class="modal-card">
+    <div class="modal-head">
+      <h3 id="projectModalTitle">New project</h3>
+      <button class="icon-btn" data-close-modal>✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="projectId">
+      <label class="field">
+        <span>Project name</span>
+        <input type="text" id="projectName" placeholder="e.g. Riverside Pavilion">
+      </label>
+      <label class="field">
+        <span>Description</span>
+        <textarea id="projectDesc" rows="2" placeholder="One line on scope or goal"></textarea>
+      </label>
+      <label class="field">
+        <span>Accent color</span>
+        <div class="swatch-row" id="projectSwatches"></div>
+      </label>
+    </div>
+    <div class="modal-foot">
+      <button class="btn danger" id="deleteProjectBtn">Delete project</button>
+      <div class="spacer"></div>
+      <button class="btn ghost" data-close-modal>Cancel</button>
+      <button class="btn primary" id="saveProjectBtn">Save project</button>
+    </div>
+  </div>
+</div>
+
+<!-- MEMBER MODAL -->
+<div class="modal" id="memberModal" role="dialog" aria-modal="true">
+  <div class="modal-card">
+    <div class="modal-head">
+      <h3 id="memberModalTitle">Add member</h3>
+      <button class="icon-btn" data-close-modal>✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="memberId">
+      <label class="field">
+        <span>Full name</span>
+        <input type="text" id="memberName" placeholder="e.g. Priya Nair">
+      </label>
+      <label class="field">
+        <span>Role</span>
+        <input type="text" id="memberRole" placeholder="e.g. Structural Engineer">
+      </label>
+      <label class="field">
+        <span>Avatar color</span>
+        <div class="swatch-row" id="memberSwatches"></div>
+      </label>
+    </div>
+    <div class="modal-foot">
+      <button class="btn danger" id="deleteMemberBtn">Remove member</button>
+      <div class="spacer"></div>
+      <button class="btn ghost" data-close-modal>Cancel</button>
+      <button class="btn primary" id="saveMemberBtn">Save member</button>
+    </div>
+  </div>
+</div>
+
+<!-- SWITCH USER MODAL -->
+<div class="modal" id="switchUserModal" role="dialog" aria-modal="true">
+  <div class="modal-card">
+    <div class="modal-head">
+      <h3>Switch active user</h3>
+      <button class="icon-btn" data-close-modal>✕</button>
+    </div>
+    <div class="modal-body">
+      <p class="hint">Viewing GRIDWORK as — this affects nothing but the "assigned to me" convenience filter.</p>
+      <div class="switch-list" id="switchList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- DAY DETAIL MODAL -->
+<div class="modal" id="dayModal" role="dialog" aria-modal="true">
+  <div class="modal-card">
+    <div class="modal-head">
+      <h3 id="dayModalTitle">Tasks due</h3>
+      <button class="icon-btn" data-close-modal>✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="day-task-list" id="dayTaskList"></div>
+    </div>
+    <div class="modal-foot">
+      <div class="spacer"></div>
+      <button class="btn ghost" data-close-modal>Close</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="script.js"></script>
+</body>
+</html>
